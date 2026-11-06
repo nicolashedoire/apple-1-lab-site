@@ -109,4 +109,4 @@ if(select)setDemo();
 
 const atelier=$('#atelier'),hack=$('#hack');
 if(atelier)import('./assembly.js').then(({mountAssembly})=>mountAssembly(atelier)).catch(()=>{atelier.textContent='L’atelier de montage est momentanément indisponible.'});
-if(hack)import('./hack.js').then(({mountHack})=>mountHack(hack)).catch(()=>{hack.textContent='L’atelier de mémoire est momentanément indisponible.'});
+if(hack)import('./hack.js?v=2').then(({mountHack})=>mountHack(hack)).catch(()=>{hack.textContent='L’atelier de mémoire est momentanément indisponible.'});

@@ -8,6 +8,7 @@ mountJourney(document.getElementById('voyage'));
 
 const current = location.pathname.split('/').pop();
 const hints = {
+  'carte.html': 'Chaque point est une aventure. Choisis celui qui t’intrigue !',
   'guide.html': 'On commence doucement. Je te présente les mots qui vont nous servir.',
   'montage.html': 'Choisis une pièce, puis place-la sur la carte. Je reste avec toi !',
   'laboratoire.html': 'Appuie sur « Étape suivante » : on va suivre les consignes ensemble.',
@@ -21,3 +22,6 @@ if (hints[current]) {
   const main = document.querySelector('main');
   if (main) { main.before(box); mountPico(box, { variant: 'compact', message: hints[current] }); }
 }
+
+if (document.getElementById('map-root')) import('./map.js').then(({mountMap})=>mountMap(document.getElementById('map-root'))).catch(()=>{document.getElementById('map-root').textContent='La carte est indisponible. Les activités restent accessibles depuis le menu.'});
+if (document.getElementById('recipe')) import('./recipe.js').then(({mountRecipe})=>mountRecipe(document.getElementById('recipe'))).catch(()=>{document.getElementById('recipe').textContent='Le jeu de recettes est momentanément indisponible.'});
