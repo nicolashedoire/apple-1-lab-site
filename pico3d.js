@@ -5,7 +5,7 @@ import { GLTFLoader } from 'https://esm.sh/three@0.170.0/examples/jsm/loaders/GL
  * Show the Meshy-generated model in an existing Pico figure.
  * A CSS Pico already in the container remains visible until the model loads,
  * and remains available if WebGL, the network, or the GLB cannot be loaded.
- * The pose animation moves the model as a whole; it is not a facial rig.
+ * The pose uses gentle procedural motion; it is not a skeletal or facial rig.
  */
 export function mountPico3D(container, { variant = 'hero', onError = () => {}, onReady = () => {} } = {}) {
   if (!(container instanceof Element)) throw new TypeError('Pico needs a container element.');
@@ -90,11 +90,14 @@ export function mountPico3D(container, { variant = 'hero', onError = () => {}, o
         const elapsed = (time - actionStarted) * 0.001;
         pointer.x = THREE.MathUtils.lerp(pointer.x, pointerTarget.x, 0.055);
         pointer.y = THREE.MathUtils.lerp(pointer.y, pointerTarget.y, 0.055);
-        animatedRoot.position.y = currentAction === 'walk' ? Math.abs(Math.sin(t * 5.8)) * 0.012 : 0;
-        animatedRoot.rotation.z = currentAction === 'blink' ? THREE.MathUtils.lerp(animatedRoot.rotation.z, 0, 0.16) : Math.sin(t * (currentAction === 'walk' ? 5.8 : 1.05)) * (currentAction === 'walk' ? 0.018 : 0.009);
-        const facing = currentAction === 'blink' ? 0 : currentAction === 'look' ? -0.68 : currentAction === 'walk' ? (elapsed < 2.55 ? -0.60 : 0.60) : Math.sin(t * 0.8) * 0.06 + pointer.x * 0.08;
+        // Pico dances in place: keep his feet at a fixed height and use a
+        // restrained side-to-side sway rather than bobbing or walking.
+        animatedRoot.position.y = 0;
+        const sway = currentAction === 'blink' ? 0 : Math.sin(t * 1.7) * 0.022;
+        animatedRoot.rotation.z = THREE.MathUtils.lerp(animatedRoot.rotation.z, sway, 0.12);
+        const facing = currentAction === 'blink' ? 0 : currentAction === 'look' ? -0.68 : Math.sin(t * 0.8) * 0.035 + pointer.x * 0.025;
         animatedRoot.rotation.y = THREE.MathUtils.lerp(animatedRoot.rotation.y, facing, 0.10);
-        const pitch = currentAction === 'blink' ? 0 : Math.sin(t * 1.2) * 0.025 - pointer.y * 0.05;
+        const pitch = currentAction === 'blink' ? 0 : Math.sin(t * 1.2) * 0.012 - pointer.y * 0.02;
         animatedRoot.rotation.x = THREE.MathUtils.lerp(animatedRoot.rotation.x, pitch, 0.12);
         // The face is a single textured surface. Flat eyelid covers only look
         // aligned near the front, so wait until Pico faces us before blinking.
@@ -106,8 +109,7 @@ export function mountPico3D(container, { variant = 'hero', onError = () => {}, o
         if (currentAction === 'blink' && blinkReadyAt !== null && blinkElapsed > 0.55) {
           currentAction = blinkRestoreAction; actionStarted = time; blinkReadyAt = null;
         }
-        const breathe = Math.sin(t * 2.0) * 0.006;
-        animatedRoot.scale.set(1 + breathe * 0.45, 1 - breathe, 1 + breathe * 0.45);
+        animatedRoot.scale.setScalar(1);
       }
       renderer.render(scene, camera);
     }
@@ -220,7 +222,8 @@ export function mountPico3D(container, { variant = 'hero', onError = () => {}, o
 
   function setAction(action) {
     const supported = ['idle', 'walk', 'wave', 'blink', 'talk', 'tongue', 'look'];
-    const nextAction = supported.includes(action) ? action : 'idle';
+    // The welcome character remains in place even if an older caller asks to walk.
+    const nextAction = action === 'walk' ? 'idle' : supported.includes(action) ? action : 'idle';
     if (nextAction === 'blink' && currentAction !== 'blink') {
       blinkRestoreAction = ['look', 'wave', 'talk', 'tongue'].includes(currentAction) ? currentAction : 'idle';
     }
@@ -252,9 +255,11 @@ function makeProceduralFeatures(model) {
   const smooth = (a, b, value) => { const x = Math.max(0, Math.min(1, (value - a) / (b - a))); return x * x * (3 - 2 * x); };
   const gate = (value, lo, hi, feather) => smooth(lo - feather, lo, value) * (1 - smooth(hi, hi + feather, value));
   let skinIndex = 0, skinDistance = Infinity;
+  const armIndices = [];
   for (let i = 0; i < position.count; i++) {
     const x = base[i * 3], y = base[i * 3 + 1], z = base[i * 3 + 2];
     weights[i * 2] = smooth(0.68, 0.88, Math.abs(x)) * gate(y, -0.22, 0.12, 0.16);
+    if (weights[i * 2] > 0.0001) armIndices.push(i);
     weights[i * 2 + 1] = (1 - smooth(-0.83, -0.62, y)) * smooth(0.04, 0.15, Math.abs(x));
     const distance = (x * x) + ((y + .10) * (y + .10)) + ((z - .708) * (z - .708));
     if (distance < skinDistance) { skinDistance = distance; skinIndex = i; }
@@ -300,17 +305,16 @@ function makeProceduralFeatures(model) {
 
   return {
     update(action, elapsed, time, reduced = false, allowBlink = true) {
-      const movingVertices = !reduced && (action === 'walk' || action === 'wave');
+      // The arms make a small alternating dance automatically. Feet are not
+      // deformed, so they stay planted while the body sways in place.
+      const movingVertices = !reduced;
       if (movingVertices || changedVertices) {
         const data = position.array;
-        const rhythm = Math.sin(elapsed * (action === 'walk' ? 5.8 : 5.2));
-        for (let i = 0; i < position.count; i++) {
-          const x = base[i * 3], arm = weights[i * 2], foot = weights[i * 2 + 1], side = x < 0 ? -1 : 1;
-          const wave = action === 'wave' ? arm * 0.12 * (0.5 + 0.5 * Math.sin(elapsed * 5.2 + (side < 0 ? 0 : 0.8))) : 0;
-          const leg = action === 'walk' ? foot * 0.105 * Math.max(0, rhythm * side) : 0;
-          data[i * 3] = x;
-          data[i * 3 + 1] = base[i * 3 + 1] + wave + leg;
-          data[i * 3 + 2] = base[i * 3 + 2] + (action === 'walk' ? foot * 0.075 * rhythm * side : 0);
+        for (const i of armIndices) {
+          const x = base[i * 3], arm = weights[i * 2], side = x < 0 ? -1 : 1;
+          const amplitude = action === 'wave' ? 0.085 : 0.042;
+          const movement = movingVertices ? arm * amplitude * Math.sin(time * 2.2 + side * 0.5) : 0;
+          data[i * 3 + 1] = base[i * 3 + 1] + movement;
         }
         position.needsUpdate = true;
         changedVertices = movingVertices;
@@ -326,16 +330,11 @@ function makeProceduralFeatures(model) {
         lid.position.y = (i === 0 ? .32 : .33) + .19 * (1 - blink);
       }
       for (const line of lidLines) line.visible = blink > .78;
-      const movingMouth = action === 'talk' || action === 'tongue';
-      mouthCover.visible = movingMouth;
-      mouth.visible = movingMouth;
-      tongue.visible = movingMouth;
-      if (movingMouth) {
-        const talking = reduced ? .75 : .22 + .78 * (0.5 + 0.5 * Math.sin(elapsed * 8));
-        mouth.scale.y = .085 * (action === 'tongue' ? .8 : talking);
-        tongue.scale.y = action === 'tongue' ? .072 : .032 * talking;
-        tongue.position.y = action === 'tongue' ? .055 : .102 + (.02 * (1 - talking));
-      }
+      // The original smile is painted into the model. Keep it visible in all
+      // actions instead of placing temporary mouth shapes over it.
+      mouthCover.visible = false;
+      mouth.visible = false;
+      tongue.visible = false;
     }
   };
 }
