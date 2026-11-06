@@ -5,11 +5,11 @@ import { OrbitControls } from 'https://esm.sh/three@0.170.0/examples/jsm/control
 export function createScene(container, { onSelect = () => {}, onError = () => {} } = {}) {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); }
-  catch (e) { onError(e); return { setScreen() {}, setActive() {}, resize() {}, destroy() {} }; }
+  catch (e) { onError(e); return { setScreen() {}, setActive() {}, focus() {}, overview() {}, resize() {}, destroy() {} }; }
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:none;';
@@ -23,22 +23,24 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   controls.enableDamping = true;
   controls.dampingFactor = .06;
   controls.enablePan = false;
-  controls.minDistance = 10;
+  controls.minDistance = 3.5;
   controls.maxDistance = 28;
   controls.maxPolarAngle = Math.PI / 2.13;
   controls.minPolarAngle = Math.PI / 7;
   controls.update();
-  scene.add(new THREE.HemisphereLight(0xd9f1ff, 0x17251d, 2.4));
-  const key = new THREE.DirectionalLight(0xffecc8, 3.2);
+  const overviewPosition=camera.position.clone(), overviewTarget=controls.target.clone();
+  let cameraDestination=null, targetDestination=null;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9fa6a5, 2.2));
+  const key = new THREE.DirectionalLight(0xffffff, 3.0);
   key.position.set(-6, 15, 12); key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   Object.assign(key.shadow.camera, { left:-12, right:12, top:12, bottom:-12, near:1, far:45 });
   key.shadow.bias = -.0002; scene.add(key);
-  const fill = new THREE.DirectionalLight(0x9bdbd1, 2.2); fill.position.set(9, 8, -7); scene.add(fill);
-  const accent = new THREE.PointLight(0xffbd70, 26, 24); accent.position.set(-7, 3, 0); scene.add(accent);
+  const fill = new THREE.DirectionalLight(0xe7efff, 1.35); fill.position.set(9, 8, -7); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xffffff, .9); rim.position.set(-8, 4, -10); scene.add(rim);
   const root = new THREE.Group(); scene.add(root);
   const mat = (color, extra={}) => new THREE.MeshStandardMaterial({ color, roughness:.72, ...extra });
-  const pcb = mat(0x234d3c, { roughness:.48, metalness:.12 });
+  const pcb = mat(0x145c3d, { roughness:.54, metalness:.06 });
   const pcbSide = mat(0x10342b, { roughness:.7 });
   const copper = mat(0xbaaa63, { metalness:.62, roughness:.4 });
   const chipMat = mat(0x252724, { roughness:.72 });
@@ -47,7 +49,7 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   const cream = mat(0xc9c0a5, { roughness:.6 });
   const ink = mat(0xd8d7b8, { roughness:.6 });
   const dark = mat(0x141919, { roughness:.5 });
-  const shadowMat = new THREE.ShadowMaterial({ opacity:.27 });
+  const shadowMat = new THREE.ShadowMaterial({ opacity:.18 });
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(100,100), shadowMat);
   ground.rotation.x = -Math.PI/2; ground.position.y=-.37; ground.receiveShadow = true; root.add(ground);
   function box(parent, w,h,d,x,y,z, material, cast=true) {
@@ -79,11 +81,11 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   const seeded = (n) => { let v=Math.sin(n*93.9898+17.23)*43758.5453; return v-Math.floor(v); };
   for(let i=0;i<70;i++) {
     const z=-3.05+i*.087, start=-5.25+seeded(i)*.7, bend=-2.7+seeded(i+50)*1.1, end=1.2+seeded(i+130)*3.9;
-    line([[start,z],[bend,z],[bend+.34,z+.25],[end,z+.25]],i%5===0?0xdec978:0x8a8b51, i%8===0?.035:.018,.169);
+    line([[start,z],[bend,z],[bend+.34,z+.25],[end,z+.25]],i%5===0?0x77a16c:0x398c59, i%8===0?.035:.018,.169);
   }
   for(let i=0;i<40;i++) {
     const x=-5.0+i*.25, z0=-3.15+seeded(i+300)*.9, z1=.2+seeded(i+420)*2.8;
-    line([[x,z0],[x,z1],[x+.25,z1+.24]],0x879052,.018,.171);
+    line([[x,z0],[x,z1],[x+.25,z1+.24]],0x398c59,.018,.171);
   }
   function topText(text, x,y,z, w,h, opts={}) {
     const canvas=document.createElement('canvas'); canvas.width=1024; canvas.height=256;
@@ -99,10 +101,12 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   const targetMeshes = [];
   const groups = {};
   function register(mesh, id) { mesh.userData.component=id; targetMeshes.push(mesh); return mesh; }
-  function chip(x,z,w,d,id,label,subtitle,pins=12) {
-    const group=new THREE.Group(); group.position.set(x,0,z); root.add(group); (groups[id] ||= []).push(group);
-    const base=register(box(group,w,.22,d,0,.29,0,chipMat),id);
-    box(group,w-.08,.025,d-.06,0,.414,0,chipTop);
+  function chip(x,z,w,d,id,label,subtitle,pins=12, rotate=false, ceramic=false) {
+    const group=new THREE.Group(); group.position.set(x,0,z); if(rotate) group.rotation.y=Math.PI/2; root.add(group); (groups[id] ||= []).push(group);
+    const body=ceramic?mat(0xe9e6d7,{roughness:.68}):chipMat;
+    const top=ceramic?mat(0xf3f0e2,{roughness:.7}):chipTop;
+    const base=register(box(group,w,.22,d,0,.29,0,body),id);
+    box(group,w-.08,.025,d-.06,0,.414,0,top);
     const notch=cylinder(group,.065,.065,.01,-w/2+.15,.435,0,mat(0x777971),12);
     for(let i=0;i<pins;i++) {
       const px=-w/2+.14+(w-.28)*i/(pins-1);
@@ -111,48 +115,52 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
         box(group,.067,.11,.055,px,.27,side*(d/2+.012),pinMat,false);
       }
     }
-    topText(label,x,.432,z-.1,w*.84,.3,{size:84,color:'#c5c8ba'});
-    if(subtitle) topText(subtitle,x,.432,z+.15,w*.78,.2,{size:63,color:'#969c90'});
+    if(label && !rotate) topText(label,x,.432,z-.1,w*.84,.3,{size:84,color:ceramic?'#625e50':'#c5c8ba'});
+    if(subtitle && !rotate) topText(subtitle,x,.432,z+.15,w*.78,.2,{size:63,color:ceramic?'#777365':'#969c90'});
     return group;
   }
-  // Component layout is schematic in spirit, not a literal reproduction.
-  chip(-.9,.03,2.5,1.08,'cpu','MOS 6502','MICROPROCESSOR',16);
-  chip(-3.8,-1.8,1.68,.72,'video','2519','VIDEO',8);
-  chip(-1.77,-1.8,1.68,.72,'video','2519','DISPLAY',8);
-  chip(.34,-1.8,1.68,.72,'video','74166','SHIFT REGISTER',8);
-  for(let i=0;i<4;i++) chip(-4.25+i*1.8,1.7,1.48,.55,'ram','2104','RAM',8);
-  chip(2.45,1.72,1.35,.55,'rom','PROM','MONITOR',8);
-  chip(4.05,1.72,1.35,.55,'rom','PROM','MONITOR',8);
-  chip(2.1,.02,1.3,.58,'video','6820','I/O',8);
-  chip(3.66,.02,1.28,.58,'video','7400','LOGIC',7);
-  chip(-4.08,.02,1.28,.58,'video','7404','LOGIC',7);
-  // Gold edge connector fingers.
-  box(root,10.65,.08,.43,0,.12,3.49,mat(0x34442c),false);
-  for(let i=0;i<44;i++) box(root,.15,.012,.35,-5.12+i*.238,.174,3.52,copper,false);
-  // Silkscreen and markings.
-  topText('APPLE COMPUTER  •  1976',-3.18,.185,2.65,3.6,.38,{bold:true,size:78,color:'#d8d5a2'});
-  topText('A1    B1    C1    D1    E1    F1    H1',-.35,.185,-2.62,6.5,.20,{size:58,color:'#cfcca9'});
-  topText('CPU',-.9,.185,.81,.8,.23,{size:70,color:'#e8e2b4'});
-  topText('MEMORY',-2.45,.185,2.2,1.2,.2,{size:62,color:'#e8e2b4'});
-  topText('ROM',3.3,.185,2.2,1,.2,{size:62,color:'#e8e2b4'});
-  // Discrete parts and an expressive bank of tall electrolytics.
-  const capMat=mat(0x182d2a,{metalness:.2,roughness:.42});
-  for(let i=0;i<4;i++) {
-    const x=3.55+i*.48,z=-1.7+(i%2)*.12;
-    const cap=register(cylinder(root,.20,.20,.8,x,.57,z,capMat,20),'power');
-    cylinder(root,.17,.17,.025,x,.985,z,pinMat,20);
-    box(root,.025,.008,.24,x,1.002,z,mat(0x626a60),false);
+  // Approximate physical layout based on the Smithsonian Apple-1 specimen.
+  // It is a visual reconstruction, not a dimensionally accurate PCB or netlist.
+  // Rows A-D run across the board: 6502 and 6820 towards row A on the left.
+  chip(-3.62,2.63,1.66,.55,'video','6820','PIA',16,false,false);
+  chip(-1.65,2.63,1.66,.55,'cpu','MOS 6502','MICROPROCESSOR',20,false,true);
+  for (let i=0; i<2; i++) chip(-5.12+i*.38,2.63,.73,.24,'rom','','',8,true);
+  for (let i=0; i<8; i++) chip(.02+i*.61,2.63,.75,.25,'ram','','',8,true);
+  // Minimum 4K installation is eight 4096 (4K x 1) chips; a second bank can bring RAM to 8K.
+  for (let i=0; i<8; i++) chip(.6+i*.59,.92,.76,.25,'ram','','',8,true);
+  for (let i=0; i<7; i++) chip(-5.12+i*.62,.92,.76,.25,'video','','',8,true);
+  chip(-.35,.92,1.05,.45,'video','74154','DECODER',12);
+  for (let row=0; row<2; row++) for (let i=0; i<16; i++) {
+    const x=-5.12+i*.59, z=-.68-row*1.56;
+    chip(x,z,.75,.25,'video','','',8,true);
   }
-  for(let i=0;i<16;i++) {
-    let x=-5.0+(i%8)*.46,z=-2.77+Math.floor(i/8)*.35;
-    cylinder(root,.075,.075,.17,x,.25,z,cream,10).rotation.z=Math.PI/2;
-    box(root,.015,.06,.08,x,.25,z,mat(i%3===0?0xb56544:0x7a573f),false);
+  // Prototyping field, visible at the rear edge on original boards.
+  const protoHole=mat(0xc9c2a2,{metalness:.5,roughness:.45});
+  for(let row=0;row<3;row++) for(let i=0;i<62;i++) {
+    const hole=cylinder(root,.026,.026,.008,-2.84+i*.095,.182,-3.35+row*.14,protoHole,6); hole.castShadow=false;
   }
-  // A row of connector blocks.
-  for(let i=0;i<3;i++) {
-    const x=4.78,z=-.7+i*.7; register(box(root,.68,.4,.48,x,.35,z,cream),'power');
-    for(let j=0;j<3;j++) cylinder(root,.035,.035,.014,x-.18+j*.18,.56,z,mat(0x5e5a48),10);
+  // The original edge socket is on the right short edge (44 contacts).
+  box(root,.34,.27,3.85,5.48,.31,1.55,mat(0x242923),false);
+  for(let i=0;i<22;i++) box(root,.06,.018,.085,5.48,.458,-.20+i*.16,copper,false);
+  // Restrained silkscreen, matching the marked copyright and the component grid.
+  topText('Apple Computer 1',-3.9,.185,.04,2.4,.31,{bold:true,size:80,color:'#e2e0c7'});
+  topText('Palo Alto, Ca.  Copyright 1976',-3.9,.185,.27,2.6,.16,{size:54,color:'#dddcc3'});
+  topText('6502',-1.65,.185,2.07,.6,.18,{size:62,color:'#e3e0c7'});
+  // Three large blue axial capacitors and a power-regulator heatsink.
+  const capMat=mat(0x347ca2,{metalness:.1,roughness:.48});
+  const capPositions=[[3.60,-3.03],[4.50,-1.19],[4.50,-.40]];
+  for(const [x,z] of capPositions){
+    const cap=register(cylinder(root,.30,.30,1.50,x,.51,z,capMat,24),'power'); cap.rotation.z=Math.PI/2;
+    const left=cylinder(root,.27,.27,.025,x-.76,.51,z,pinMat,20);left.rotation.z=Math.PI/2;
+    const right=cylinder(root,.27,.27,.025,x+.76,.51,z,pinMat,20);right.rotation.z=Math.PI/2;
   }
+  // Aluminium regulator and white connector blocks, approximate positions.
+  const sink=register(box(root,1.0,.75,.9,4.65,.50,-2.90,mat(0x7d8383,{metalness:.7,roughness:.35})),'power');
+  for(let i=0;i<6;i++)box(root,.075,.85,.95,4.18+i*.18,.55,-2.90,mat(0x555a59,{metalness:.65,roughness:.4}));
+  for(let i=0;i<2;i++){const x=4.97,z=-2.02+i*.5;register(box(root,.77,.32,.34,x,.31,z,cream),'power');}
+  // Small orange decoupling capacitors punctuate the chip rows.
+  const orange=mat(0xc57b38,{roughness:.63});
+  for(let i=0;i<20;i++) {const x=-4.7+(i%10)*.98,z=-2.7+Math.floor(i/10)*1.6;cylinder(root,.06,.06,.12,x,.24,z,orange,10);}
   // CRT with animated screen canvas. Fictional display housing beside the real board.
   const screenCanvas=document.createElement('canvas'); screenCanvas.width=1024; screenCanvas.height=768;
   const screenCtx=screenCanvas.getContext('2d');
@@ -192,7 +200,7 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   let selected=null;
   const raycaster=new THREE.Raycaster(), pointer=new THREE.Vector2();
   let down=null;
-  function pointerDown(e){ down={x:e.clientX,y:e.clientY}; }
+  function pointerDown(e){ cameraDestination=null; targetDestination=null; down={x:e.clientX,y:e.clientY}; }
   function pointerUp(e){
     if(!down || Math.hypot(e.clientX-down.x,e.clientY-down.y)>5) return;
     const r=renderer.domElement.getBoundingClientRect(); pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
@@ -209,19 +217,29 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
       mesh.material=mesh.userData.baseMat;
       if(mesh.userData.component===id){
         mesh.userData.highlightMat=mesh.userData.baseMat.clone();
-        mesh.userData.highlightMat.emissive=new THREE.Color(0x274e36);
+        mesh.userData.highlightMat.emissive=new THREE.Color(0x1353a2);
         mesh.userData.highlightMat.emissiveIntensity=.8;
         mesh.material=mesh.userData.highlightMat;
       }
     }
   }
+  // Smoothly approach a component while keeping orbit controls available.
+  const focusPoints={cpu:[-1.65,.42,2.63,5],ram:[2.55,.40,2.63,7.4],video:[-1.5,.36,-1.25,9],rom:[-4.93,.38,2.63,5],power:[4.4,.6,-1.25,7]};
+  function focus(id) {
+    if(!focusPoints[id]) return;
+    setActive(id);
+    const [x,y,z,d]=focusPoints[id]; targetDestination=new THREE.Vector3(x,y,z);
+    const direction=overviewPosition.clone().sub(overviewTarget).normalize();
+    cameraDestination=targetDestination.clone().addScaledVector(direction,d);
+  }
+  function overview() { cameraDestination=overviewPosition.clone(); targetDestination=overviewTarget.clone(); }
   renderer.domElement.addEventListener('pointerdown',pointerDown);
   renderer.domElement.addEventListener('pointerup',pointerUp);
   const resize=()=>{const w=container.clientWidth||1,h=container.clientHeight||1; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();};
   const observer=typeof ResizeObserver!=='undefined'?new ResizeObserver(resize):null;
   observer?.observe(container); window.addEventListener('resize',resize); resize();
   let frame=0, disposed=false;
-  function animate(){ if(disposed)return; frame=requestAnimationFrame(animate); controls.update(); renderer.render(scene,camera); }
+  function animate(){ if(disposed)return; frame=requestAnimationFrame(animate); if(cameraDestination && targetDestination){camera.position.lerp(cameraDestination,.075);controls.target.lerp(targetDestination,.075);if(camera.position.distanceTo(cameraDestination)<.012 && controls.target.distanceTo(targetDestination)<.012){cameraDestination=null;targetDestination=null;}} const pulse=.45+.45*(1+Math.sin(performance.now()*.004))/2; for(const mesh of targetMeshes){if(mesh.userData.highlightMat)mesh.userData.highlightMat.emissiveIntensity=pulse;} controls.update(); renderer.render(scene,camera); }
   animate();
-  return { setScreen, setActive, resize, destroy(){ disposed=true; cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize',resize); renderer.domElement.removeEventListener('pointerdown',pointerDown); renderer.domElement.removeEventListener('pointerup',pointerUp); controls.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
+  return { setScreen, setActive, focus, overview, resize, destroy(){ disposed=true; cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize',resize); renderer.domElement.removeEventListener('pointerdown',pointerDown); renderer.domElement.removeEventListener('pointerup',pointerUp); controls.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }

@@ -9,9 +9,11 @@ const facts = {
  power:['05 / L’ÉNERGIE','ϟ','Alimentation','La carte comporte des circuits de régulation et reçoit ses tensions depuis des transformateurs externes.','ALIMENTATION RÉGULÉE']
 };
 function selectComponent(id){const f=facts[id]; if(!f)return; document.querySelectorAll('.component-tab').forEach(x=>x.classList.toggle('active',x.dataset.component===id)); ['detail-kicker','detail-symbol','detail-title','detail-text','detail-foot'].forEach((key,i)=>document.getElementById(key).textContent=f[i]);model?.setActive(id)}
-document.querySelectorAll('.component-tab').forEach(el=>el.addEventListener('click',()=>selectComponent(el.dataset.component)));
+function focusComponent(id, scroll=false){selectComponent(id);const f=facts[id];if(!f)return;$('#scene-info-title').textContent=f[2];$('#scene-info-text').textContent=f[3];$('#scene-info').hidden=false;$('#scene-overview').hidden=false;if(scroll)$('#explorer').scrollIntoView({behavior:'smooth',block:'start'});model?.focus(id)}
+document.querySelectorAll('.component-tab').forEach(el=>el.addEventListener('click',()=>focusComponent(el.dataset.component,true)));
+$('#scene-overview').addEventListener('click',()=>{model?.overview();model?.setActive(null);$('#scene-info').hidden=true;$('#scene-overview').hidden=true});
 $('#explore-btn').addEventListener('click',()=>$('#composants').scrollIntoView({behavior:'smooth'}));
-import('./scene.js').then(({createScene})=>{$('#scene').querySelector('.scene-loading')?.remove();model=createScene($('#scene'),{onSelect:id=>{selectComponent(id);$('#composants').scrollIntoView({behavior:'smooth',block:'center'})},onError:()=>fallback()});model.setScreen(cpu.screen)}).catch(fallback);
+import('./scene.js').then(({createScene})=>{$('#scene').querySelector('.scene-loading')?.remove();model=createScene($('#scene'),{onSelect:id=>focusComponent(id),onError:()=>fallback()});model.setScreen(cpu.screen)}).catch(fallback);
 function fallback(){const el=$('#scene');el.innerHTML='<div class="scene-loading">La vue 3D est indisponible sur ce navigateur.<br><br>Le laboratoire reste accessible ci-dessous.</div>'}
 const select=$('#demo-select'); DEMOS.forEach(d=>{let o=document.createElement('option');o.value=d.id;o.textContent=d.title;select.appendChild(o)});
 function stop(){if(timer){clearInterval(timer);timer=null}$('#run-btn').textContent='▶▶';$('#run-btn').title='Exécuter'}
