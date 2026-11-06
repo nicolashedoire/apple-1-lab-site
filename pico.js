@@ -13,7 +13,14 @@ export function mountPico(container, { message = '', variant = 'hero' } = {}) {
   const figure = document.createElement('div');
   figure.className = 'pico__figure';
   figure.setAttribute('aria-hidden', 'true');
-  figure.innerHTML = '<span class="pico__halo"></span><span class="pico__shadow"></span><span class="pico__orb"><span class="pico__sheen"></span><span class="pico__face"><span class="pico__eye pico__eye--left"><i></i></span><span class="pico__eye pico__eye--right"><i></i></span><span class="pico__cheek pico__cheek--left"></span><span class="pico__cheek pico__cheek--right"></span><span class="pico__mouth"></span></span></span>';
+  // Show the current character while the 3D model loads (or if WebGL is unavailable).
+  // The images use the same 3D design, so there is no flash of the old character.
+  const poster = document.createElement('img');
+  poster.className = 'pico__poster';
+  poster.src = new URL(variant === 'compact' ? './assets/pico-reference.png' : './assets/pico-meshy-preview.png', import.meta.url).href;
+  poster.alt = '';
+  poster.decoding = 'async';
+  figure.append(poster);
   const bubble = document.createElement('div');
   bubble.className = 'pico__bubble';
   const label = document.createElement('span');

@@ -1,4 +1,4 @@
-import { mountPico } from './pico.js';
+import { mountPico } from './pico.js?v=2';
 import { trackJourney, mountJourney } from './journey.js?v=2';
 
 trackJourney();

@@ -1,8 +1,8 @@
-/* The CSS character remains the fallback until the 3D model is ready. */
-.pico3d-host{position:relative;isolation:isolate}
+/* The current Pico poster remains visible until the 3D model is ready. */
+.pico3d-host{position:relative}
 .pico3d-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:0;transition:opacity .25s ease;pointer-events:none}
 .pico3d-ready>.pico3d-canvas{opacity:1}
-.pico3d-ready>.pico__orb,.pico3d-ready>.pico__halo,.pico3d-ready>.pico__shadow{visibility:hidden}
+.pico3d-ready>.pico__poster{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.pico3d-canvas{transition:none}}
 
 /* A small contact shadow gives the feet a stable surface. */

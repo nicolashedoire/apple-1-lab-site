@@ -1,26 +1,14 @@
-/* Pico: an original glowing terminal guide. The silhouette remains round at every size. */
+/* The still preview uses the current Pico design while the 3D model loads. */
 .pico{--pico-size:132px;display:flex;align-items:center;gap:20px;min-width:0;color:#f5fff8;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif}
 .pico--compact{--pico-size:62px;gap:12px}
-.pico__figure{position:relative;flex:none;width:var(--pico-size);height:calc(var(--pico-size) * 1.08);display:grid;place-items:center;isolation:isolate}
-.pico__halo{position:absolute;inset:3%;border-radius:50%;background:radial-gradient(circle,rgba(74,255,154,.3),rgba(42,235,123,.10) 44%,transparent 72%);filter:blur(calc(var(--pico-size) * .12));z-index:-2}
-.pico__shadow{position:absolute;bottom:2%;left:20%;width:60%;height:8%;border-radius:50%;background:rgba(0,0,0,.28);filter:blur(6px);z-index:-1;animation:pico-shadow 4.2s ease-in-out infinite}
-.pico__orb{position:relative;display:block;width:79%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 30% 22%,#e4ffdf 0%,#9bffb7 12%,#56f391 42%,#21cc71 79%,#138e55 100%);box-shadow:inset -8px -10px 16px #0c9d5b5c,inset 5px 6px 12px #ffffff5c,0 0 22px #33ff8b68,0 14px 24px #00130c4d;animation:pico-float 4.2s ease-in-out infinite}
-.pico__sheen{position:absolute;left:19%;top:10%;width:39%;height:20%;border-radius:50%;background:radial-gradient(ellipse at center,#ffffffa3,transparent 75%);transform:rotate(-26deg)}
-.pico__face{position:absolute;left:0;right:0;top:25%;bottom:17%;display:block}
-.pico__eye{position:absolute;top:8%;width:18%;height:41%;border-radius:50% 50% 48% 48%;background:linear-gradient(160deg,#061c18,#103f32);box-shadow:inset 0 -2px 4px #64d8a53d,0 1px 0 #d7ffe247;animation:pico-blink 7s infinite}
-.pico__eye--left{left:29%}.pico__eye--right{right:29%}.pico__eye i{position:absolute;display:block;top:11%;right:16%;width:34%;height:30%;border-radius:50%;background:#fff;box-shadow:0 0 5px #fff8}
-.pico__eye:after{content:"";position:absolute;bottom:17%;left:20%;width:18%;height:15%;border-radius:50%;background:#b6ffdb99}.pico__cheek{position:absolute;top:51%;width:14%;height:10%;border-radius:50%;background:radial-gradient(ellipse,#ffbbaa70,transparent 75%);filter:blur(1px)}.pico__cheek--left{left:20%}.pico__cheek--right{right:20%}.pico__mouth{position:absolute;left:33%;top:68%;width:34%;height:27%;overflow:hidden;background:#0b3022;border:calc(var(--pico-size) * .012) solid #0b3022;border-radius:38% 38% 54% 54%;transform:rotate(-2deg);animation:pico-talk 7s ease-in-out infinite}.pico__mouth:after{content:"";position:absolute;width:62%;height:35%;left:19%;bottom:-7%;border-radius:50%;background:#ffaaa0;opacity:.85}
+.pico__figure{position:relative;flex:none;width:var(--pico-size);height:calc(var(--pico-size) * 1.08);display:grid;place-items:center}
+.pico__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;pointer-events:none}
+.pico--compact .pico__poster{mix-blend-mode:multiply}
 .pico__bubble{position:relative;max-width:280px;padding:16px 19px;border:1px solid #ffffff22;border-radius:19px;background:#ffffff10;backdrop-filter:blur(14px)}
 .pico__bubble[hidden]{display:none}.pico__bubble:before{content:"";position:absolute;left:-5px;top:24px;width:9px;height:9px;border-left:1px solid #ffffff22;border-bottom:1px solid #ffffff22;background:#20372d;transform:rotate(45deg)}
 .pico__label{display:block;color:#73ffa5;font-size:10px;letter-spacing:.12em;font-weight:700}.pico__message{margin:7px 0 0;color:inherit;font-size:14px;line-height:1.5;font-weight:500}
 .pico--compact .pico__bubble{padding:11px 14px;border-radius:15px}.pico--compact .pico__label{font-size:9px}.pico--compact .pico__message{font-size:12px;margin-top:4px}
-@keyframes pico-float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-5%) rotate(2deg)}}
-@keyframes pico-shadow{0%,100%{transform:scale(1);opacity:.28}50%{transform:scale(.85);opacity:.18}}
-@keyframes pico-talk{0%,4%,11%,19%,27%,37%,100%{height:27%;transform:rotate(-2deg)}7%,15%,23%,31%{height:36%;transform:rotate(0deg)}25%{height:32%;transform:scaleX(.9)}}
-@keyframes pico-blink{0%,44%,48%,100%{transform:scaleY(1)}46%{transform:scaleY(.12)}}
 @media(max-width:600px){.pico{--pico-size:108px;gap:12px}.pico--compact{--pico-size:56px}.pico__bubble{padding:13px 15px}.pico__message{font-size:13px}}
-@media(prefers-reduced-motion:reduce){.pico__orb,.pico__shadow,.pico__eye,.pico__mouth,.pico__mouth:after{animation:none}}
-/* Compact callouts remain readable on the light activity pages. */
 .pico--compact{color:#1d1d1f}
 .pico--compact .pico__bubble{background:#fff;border-color:#e4e9e5;box-shadow:0 6px 22px #142d1a10}
 .pico--compact .pico__bubble:before{background:#fff;border-color:#e4e9e5}
