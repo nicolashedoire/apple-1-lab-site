@@ -2,10 +2,10 @@ import * as THREE from 'https://esm.sh/three@0.170.0';
 import { OrbitControls } from 'https://esm.sh/three@0.170.0/examples/jsm/controls/OrbitControls.js';
 
 // A deliberately interpretive, explorable model: not a PCB manufacturing layout.
-export function createScene(container, { onSelect = () => {}, onError = () => {} } = {}) {
+export function createScene(container, { onSelect = () => {}, onError = () => {}, onAnchor = () => {} } = {}) {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); }
-  catch (e) { onError(e); return { setScreen() {}, setActive() {}, focus() {}, overview() {}, resize() {}, destroy() {} }; }
+  catch (e) { onError(e); return { setScreen() {}, setActive() {}, focus() {}, overview() {}, getAnchor() { return null; }, resize() {}, destroy() {} }; }
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -187,12 +187,12 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   brand.position.set(-1.34,.67,1.22); monitor.add(brand);
   let currentText='APPLE-1\n\\\n_';
   function setScreen(value) {
-    currentText=Array.isArray(value)?value.join('\n'):String(value??'');
+    currentText=(Array.isArray(value)?value.join('\n'):String(value??'')) || 'APPLE-1\n\\\n_';
     const c=screenCtx; c.fillStyle='#07140e'; c.fillRect(0,0,1024,768);
     const grad=c.createRadialGradient(512,350,80,512,360,650); grad.addColorStop(0,'rgba(40,97,60,.30)'); grad.addColorStop(1,'rgba(1,8,5,.5)'); c.fillStyle=grad; c.fillRect(0,0,1024,768);
-    c.font='bold 24px monospace'; c.textBaseline='top'; c.fillStyle='#b3f4b0'; c.shadowColor='#85ff9a'; c.shadowBlur=8;
+    c.save(); c.translate(28,24); c.scale(1.35,1); const compact = currentText.length < 30; c.font=compact?'bold 56px monospace':'bold 27px monospace'; c.textBaseline='top'; c.fillStyle='#c4ffc1'; c.shadowColor='#9affaa'; c.shadowBlur=9;
     const rows=currentText.replace(/\r/g,'').split('\n').slice(-24);
-    rows.forEach((row,i)=>c.fillText(row.slice(0,40),28,24+i*30)); c.shadowBlur=0;
+    rows.forEach((row,i)=>c.fillText(row.slice(0,40),0,i*(compact ? 66 : 30))); c.restore();
     c.fillStyle='rgba(0,0,0,.14)'; for(let y=0;y<768;y+=4)c.fillRect(0,y,1024,1);
     screenTexture.needsUpdate=true;
   }
@@ -224,12 +224,23 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
     }
   }
   // Smoothly approach a component while keeping orbit controls available.
-  const focusPoints={cpu:[-1.65,.42,2.63,5],ram:[2.55,.40,2.63,7.4],video:[-1.5,.36,-1.25,9],rom:[-4.93,.38,2.63,5],power:[4.4,.6,-1.25,7]};
+  const focusPoints={cpu:[-1.65,.43,2.63,5.4],ram:[2.55,.43,2.63,6.8],video:[-3.62,.43,2.63,5.5],rom:[-4.93,.43,2.63,4.4],power:[4.5,.6,-1.19,6.2]};
+  // The active part's projected position, relative to the scene container, lets
+  // the UI attach a pointer that follows the camera and orbital movement.
+  function getAnchor(id=selected) {
+    const data=focusPoints[id];
+    if (!data) return null;
+    camera.updateMatrixWorld();
+    const position = new THREE.Vector3(data[0],data[1],data[2]).project(camera);
+    const width=container.clientWidth || 1, height=container.clientHeight || 1;
+    return {id, x:(position.x+1)*width/2, y:(1-position.y)*height/2,
+      visible:position.z>=-1 && position.z<=1 && Math.abs(position.x)<=1 && Math.abs(position.y)<=1};
+  }
   function focus(id) {
     if(!focusPoints[id]) return;
     setActive(id);
     const [x,y,z,d]=focusPoints[id]; targetDestination=new THREE.Vector3(x,y,z);
-    const direction=overviewPosition.clone().sub(overviewTarget).normalize();
+    const direction=new THREE.Vector3(.32,1.5,.82).normalize();
     cameraDestination=targetDestination.clone().addScaledVector(direction,d);
   }
   function overview() { cameraDestination=overviewPosition.clone(); targetDestination=overviewTarget.clone(); }
@@ -239,7 +250,7 @@ export function createScene(container, { onSelect = () => {}, onError = () => {}
   const observer=typeof ResizeObserver!=='undefined'?new ResizeObserver(resize):null;
   observer?.observe(container); window.addEventListener('resize',resize); resize();
   let frame=0, disposed=false;
-  function animate(){ if(disposed)return; frame=requestAnimationFrame(animate); if(cameraDestination && targetDestination){camera.position.lerp(cameraDestination,.075);controls.target.lerp(targetDestination,.075);if(camera.position.distanceTo(cameraDestination)<.012 && controls.target.distanceTo(targetDestination)<.012){cameraDestination=null;targetDestination=null;}} const pulse=.45+.45*(1+Math.sin(performance.now()*.004))/2; for(const mesh of targetMeshes){if(mesh.userData.highlightMat)mesh.userData.highlightMat.emissiveIntensity=pulse;} controls.update(); renderer.render(scene,camera); }
+  function animate(){ if(disposed)return; frame=requestAnimationFrame(animate); if(cameraDestination && targetDestination){camera.position.lerp(cameraDestination,.075);controls.target.lerp(targetDestination,.075);if(camera.position.distanceTo(cameraDestination)<.012 && controls.target.distanceTo(targetDestination)<.012){cameraDestination=null;targetDestination=null;}} const pulse=.45+.45*(1+Math.sin(performance.now()*.004))/2; for(const mesh of targetMeshes){if(mesh.userData.highlightMat)mesh.userData.highlightMat.emissiveIntensity=pulse;} controls.update(); renderer.render(scene,camera); onAnchor(getAnchor()); }
   animate();
-  return { setScreen, setActive, focus, overview, resize, destroy(){ disposed=true; cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize',resize); renderer.domElement.removeEventListener('pointerdown',pointerDown); renderer.domElement.removeEventListener('pointerup',pointerUp); controls.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
+  return { setScreen, setActive, focus, overview, getAnchor, resize, destroy(){ disposed=true; cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize',resize); renderer.domElement.removeEventListener('pointerdown',pointerDown); renderer.domElement.removeEventListener('pointerup',pointerUp); controls.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
