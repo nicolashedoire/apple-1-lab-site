@@ -1,0 +1,26 @@
+import {CPU, DEMOS, hex} from './cpu.js';
+const $ = s => document.querySelector(s);
+const cpu = new CPU(); let model = null, timer = null, history = [], lastDemo = DEMOS[0];
+const facts = {
+ cpu:['01 / LE CERVEAU','⌘','MOS 6502','Il lit les instructions en mémoire et les exécute, une à une. Ses registres gardent les petites informations dont il a besoin pour travailler.','8 BITS · 1.023 MHZ'],
+ ram:['02 / LA MÉMOIRE','▦','Mémoire vive','Elle conserve temporairement les programmes et leurs données. L’Apple-1 était fourni avec 4 Ko de RAM, extensibles sur la carte.','4 KO FOURNIS · EXTENSIBLE'],
+ rom:['03 / LES INSTRUCTIONS','▤','Le moniteur','Ce programme résident permet d’examiner et de modifier la mémoire puis de lancer des programmes. Son code est reproduit dans le manuel.','MONITEUR HEXADÉCIMAL'],
+ video:['04 / LE TERMINAL','▣','Affichage & clavier','Le circuit vidéo produit un affichage de 40 colonnes sur 24 lignes. Il dispose de sa propre mémoire d’affichage.','40 × 24 CARACTÈRES'],
+ power:['05 / L’ÉNERGIE','ϟ','Alimentation','La carte comporte des circuits de régulation et reçoit ses tensions depuis des transformateurs externes.','ALIMENTATION RÉGULÉE']
+};
+function selectComponent(id){const f=facts[id]; if(!f)return; document.querySelectorAll('.component-tab').forEach(x=>x.classList.toggle('active',x.dataset.component===id)); ['detail-kicker','detail-symbol','detail-title','detail-text','detail-foot'].forEach((key,i)=>document.getElementById(key).textContent=f[i]);model?.setActive(id)}
+document.querySelectorAll('.component-tab').forEach(el=>el.addEventListener('click',()=>selectComponent(el.dataset.component)));
+$('#explore-btn').addEventListener('click',()=>$('#composants').scrollIntoView({behavior:'smooth'}));
+import('./scene.js').then(({createScene})=>{$('#scene').querySelector('.scene-loading')?.remove();model=createScene($('#scene'),{onSelect:id=>{selectComponent(id);$('#composants').scrollIntoView({behavior:'smooth',block:'center'})},onError:()=>fallback()});model.setScreen(cpu.screen)}).catch(fallback);
+function fallback(){const el=$('#scene');el.innerHTML='<div class="scene-loading">La vue 3D est indisponible sur ce navigateur.<br><br>Le laboratoire reste accessible ci-dessous.</div>'}
+const select=$('#demo-select'); DEMOS.forEach(d=>{let o=document.createElement('option');o.value=d.id;o.textContent=d.title;select.appendChild(o)});
+function stop(){if(timer){clearInterval(timer);timer=null}$('#run-btn').textContent='▶▶';$('#run-btn').title='Exécuter'}
+function setDemo(){stop();lastDemo=DEMOS.find(d=>d.id===select.value)||DEMOS[0];$('#demo-description').textContent=lastDemo.description;$('#code-input').value=lastDemo.bytes.map(n=>hex(n)).join(' ');loadProgram()}
+select.addEventListener('change',setDemo);
+function loadProgram(){stop(); const text=$('#code-input').value.trim(); const tokens=text.split(/[\s,;]+/).filter(Boolean); if(!tokens.length||tokens.some(x=>!/^(?:\$|0x)?[0-9a-fA-F]{2}$/.test(x))){$('#load-message').textContent='UTILISEZ DES OCTETS HEX : A9 C8 00';return}try{cpu.load(tokens.map(x=>parseInt(x.replace(/^\$|^0x/i,''),16)),0x300);history=[];$('#load-message').textContent='PROGRAMME CHARGÉ';render()}catch(e){$('#load-message').textContent=e.message}}
+$('#load-btn').addEventListener('click',loadProgram);
+function step(){if(cpu.halted){stop();return}const result=cpu.step();history.unshift(`$${hex(result.pc,4)}  ${result.mnemonic}`);history=history.slice(0,7);render(result);if(cpu.halted)stop()}
+$('#step-btn').addEventListener('click',step);$('#run-btn').addEventListener('click',()=>{if(timer){stop();return}if(cpu.halted){$('#load-message').textContent='CHARGEZ OU RÉINITIALISEZ';return}$('#run-btn').textContent='Ⅱ';$('#run-btn').title='Mettre en pause';timer=setInterval(step,180)});$('#reset-btn').addEventListener('click',()=>{loadProgram();$('#load-message').textContent='PROGRAMME RÉINITIALISÉ'});
+function render(last=null){const regs=[['A',cpu.a,2],['X',cpu.x,2],['Y',cpu.y,2],['PC',cpu.pc,4],['SP',cpu.sp,2],['P',cpu.p,2]];$('#registers').innerHTML=regs.map(([k,v,n])=>`<div class="register ${last && last.before[k.toLowerCase()]!==v?'changed':''}"><span>${k}</span><strong>$${hex(v,n)}</strong></div>`).join('');$('#step-count').textContent='PAS '+String(cpu.steps).padStart(3,'0');$('#instruction').innerHTML=last?`${last.mnemonic}<span>$${hex(last.pc,4)}</span>`:'EN ATTENTE<span>—</span>';$('#instruction-description').textContent=last?last.description:'Tout est prêt. Cliquez sur « Pas suivant » pour commencer.';
+ const blocks=[0x300,0x308,0x310,0x400];$('#memory').innerHTML=blocks.map(start=>`<div><span class="address">${hex(start,4)}:</span> ${Array.from({length:8},(_,i)=>`<span class="${start+i===cpu.pc?'current':''}">${hex(cpu.memory[start+i])}</span>`).join(' ')}</div>`).join('');$('#trace').innerHTML=history.length?history.map(x=>`<div>${x}</div>`).join(''):'Les instructions apparaîtront ici.';$('#screen').textContent=cpu.screen;model?.setScreen(cpu.screen);$('#output-explanation').textContent=last?.output?'Le caractère « '+(last.output==='\n'?'retour à la ligne':last.output)+' » vient d’être envoyé à l’écran.':cpu.screen?'Le terminal conserve les caractères déjà reçus.':'L’écran attend les caractères envoyés par le programme.'}
+setDemo();
