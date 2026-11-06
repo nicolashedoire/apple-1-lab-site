@@ -2,15 +2,15 @@
 export function mountAssembly(container) {
   if (!container) return;
   const pieces = [
-    {id:'cpu', name:'Processeur', title:'Le cerveau', hint:'Trouve le processeur, puis place-le sur la zone bleue.', fact:'Le processeur lit les instructions et les exécute.'},
-    {id:'memory', name:'Mémoire', title:'La mémoire', hint:'Choisis la mémoire et place-la sur la carte.', fact:'La mémoire garde les informations pendant que la machine travaille.'},
-    {id:'video', name:'Circuits vidéo', title:'Les circuits vidéo', hint:'Choisis les circuits vidéo et place-les sur la carte.', fact:'Ces circuits aident à afficher les caractères à l’écran.'},
-    {id:'power', name:'Alimentation', title:'L’alimentation', hint:'Choisis l’alimentation et place-la sur la carte.', fact:'Elle fournit l’énergie nécessaire aux composants.'},
-    {id:'screen', name:'Écran', title:'L’écran', hint:'Choisis l’écran et place-le à côté de la carte.', fact:'L’écran nous permet de voir ce que la machine affiche.'}
+    {id:'cpu', name:'Processeur', title:'Le cerveau', hint:'Le processeur suit les consignes. Choisis « Processeur » dans la liste, puis place-le.', fact:'Bien joué ! Le processeur est comme le chef : il suit les consignes du programme.'},
+    {id:'memory', name:'Mémoire', title:'La mémoire', hint:'La mémoire garde les informations. Choisis « Mémoire », puis place-la.', fact:'La mémoire est comme une armoire : elle garde les consignes et les nombres pendant que la machine travaille.'},
+    {id:'video', name:'Circuits vidéo', title:'Les circuits vidéo', hint:'Ces puces aident à montrer les lettres. Choisis « Circuits vidéo », puis place-les.', fact:'Les circuits vidéo préparent les lettres pour que l’écran puisse les montrer.'},
+    {id:'power', name:'Alimentation', title:'L’alimentation', hint:'La machine a besoin d’électricité. Choisis « Alimentation », puis place-la.', fact:'L’alimentation fournit aux pièces l’électricité dont elles ont besoin.'},
+    {id:'screen', name:'Écran', title:'L’écran', hint:'Pour voir les lettres, il faut un écran. Choisis « Écran », puis place-le.', fact:'L’écran montre les lettres et les résultats de la machine.'}
   ];
   const escape = text => String(text).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   container.classList.add('assembly-section');
-  container.innerHTML=`<div class="assembly-wrap"><div class="assembly-heading"><div><div class="assembly-eyebrow">L’ATELIER</div><h2>Construis ton Apple‑1.</h2><p>À toi de jouer : assemble les pièces, une par une.</p></div><div class="assembly-progress"><span class="assembly-count">ÉTAPE 1 / 5</span><div class="assembly-progress-track"><span></span></div></div></div><div class="assembly-card"><div class="assembly-stage"><div class="assembly-stage-title"><span>CARTE INTERACTIVE</span><span class="assembly-stage-note">Fais tourner la carte avec ton doigt ou ta souris.</span></div><div class="assembly-canvas" role="img" aria-label="Carte Apple-1 à assembler en trois dimensions"><div class="assembly-loading">Préparation de l’atelier…</div></div><div class="assembly-scene-caption">Une maquette pour comprendre · placement simplifié</div></div><div class="assembly-side"><div class="assembly-side-top"><div class="assembly-step-number">01 <span>/ 05</span></div><h3></h3><p class="assembly-hint"></p></div><div class="assembly-inventory-label">CHOISIS UNE PIÈCE</div><div class="assembly-inventory" role="group" aria-label="Pièces à assembler"></div><p class="assembly-feedback" role="status" aria-live="polite"></p><div class="assembly-actions"><button type="button" class="assembly-place" disabled>Placer la pièce <span>→</span></button><button type="button" class="assembly-reset">Recommencer</button></div></div></div></div>`;
+  container.innerHTML=`<div class="assembly-wrap"><div class="assembly-heading"><div><div class="assembly-eyebrow">L’ATELIER</div><h2>Construis ton Apple‑1.</h2><p>À toi de jouer : découvre à quoi servent les pièces et assemble-les, une par une.</p></div><div class="assembly-progress"><span class="assembly-count">ÉTAPE 1 / 5</span><div class="assembly-progress-track"><span></span></div></div></div><div class="assembly-how" aria-label="Comment assembler"><p><b>1.</b> Choisis la pièce demandée.</p><p><b>2.</b> Clique sur la cible bleue de la carte ou sur « Placer la pièce ».</p><p><b>3.</b> Lis son rôle, puis passe à la suivante.</p></div><div class="assembly-card"><div class="assembly-stage"><div class="assembly-stage-title"><span>CARTE INTERACTIVE</span><span class="assembly-stage-note">Fais glisser la carte avec ton doigt ou ta souris pour la faire tourner.</span></div><div class="assembly-canvas" role="img" aria-label="Carte Apple-1 à assembler en trois dimensions"><div class="assembly-loading">Préparation de l’atelier…</div></div><div class="assembly-scene-caption">Une maquette pour comprendre · placement simplifié</div></div><div class="assembly-side"><div class="assembly-side-top"><div class="assembly-step-number">01 <span>/ 05</span></div><h3></h3><p class="assembly-hint"></p></div><div class="assembly-inventory-label">CHOISIS UNE PIÈCE</div><div class="assembly-inventory" role="group" aria-label="Pièces à assembler"></div><p class="assembly-feedback" role="status" aria-live="polite"></p><div class="assembly-actions"><button type="button" class="assembly-place" disabled>Placer la pièce <span>→</span></button><button type="button" class="assembly-reset">Recommencer</button><a class="assembly-next" href="laboratoire.html" hidden>Voir comment elle fonctionne →</a></div></div></div></div>`;
   const query=s=>container.querySelector(s), canvasHost=query('.assembly-canvas');
   const inventory=query('.assembly-inventory'), feedback=query('.assembly-feedback'), placeButton=query('.assembly-place');
   let step=0, selected=null, sceneAPI=null, disposed=false;
@@ -20,7 +20,8 @@ export function mountAssembly(container) {
     query('.assembly-progress-track span').style.width=`${step/pieces.length*100}%`;
     query('.assembly-step-number').innerHTML=done?'✓ <span>TERMINÉ</span>':`${String(step+1).padStart(2,'0')} <span>/ 05</span>`;
     query('.assembly-side h3').textContent=done?'Bravo, ta machine est prête !':current.title;
-    query('.assembly-hint').textContent=done?'Tu peux recommencer ou explorer le laboratoire.':current.hint;
+    query('.assembly-hint').textContent=done?'Les pièces travaillent ensemble ! Va au laboratoire pour voir comment elles suivent un programme.':current.hint;
+    query('.assembly-next').hidden=!done;
     inventory.innerHTML=pieces.map((p,i)=>`<button type="button" class="assembly-piece ${selected===p.id?'is-selected':''} ${i<step?'is-placed':''}" data-piece="${p.id}" ${done||i<step?'disabled':''} aria-pressed="${selected===p.id}"><span class="assembly-piece-icon part-${p.id}" aria-hidden="true"><i></i></span><span>${escape(p.name)}</span>${i<step?'<span class="assembly-check" aria-label="placé">✓</span>':''}</button>`).join('');
     query('.assembly-inventory-label').textContent=done?'LES PIÈCES SONT EN PLACE':'CHOISIS UNE PIÈCE';
     placeButton.disabled=done||!selected;
@@ -30,12 +31,12 @@ export function mountAssembly(container) {
   function selectPiece(id) {
     if(step>=pieces.length)return;
     selected=id; feedback.textContent=''; render();
-    feedback.textContent=id===pieces[step].id ? 'Bien choisi ! Clique sur la cible bleue ou sur « Placer la pièce ».' : 'Regarde bien le nom de la pièce demandée.';
+    feedback.textContent=id===pieces[step].id ? 'Bien choisi ! Clique sur le cercle bleu sur la carte ou sur « Placer la pièce ».' : `Pour cette étape, cherche « ${pieces[step].name} » dans la liste.`;
   }
   function place() {
     if(step>=pieces.length)return;
     if(!selected){feedback.textContent='Choisis une pièce avant de la placer.'; return;}
-    if(selected!==pieces[step].id){feedback.textContent='Pas tout à fait : essaie la pièce indiquée à cette étape.';return;}
+    if(selected!==pieces[step].id){feedback.textContent=`Pour cette étape, choisis « ${pieces[step].name} » dans la liste.`;return;}
     const fact=pieces[step].fact; step++; selected=null; render(); feedback.textContent=fact;
   }
   inventory.addEventListener('click',e=>{const button=e.target.closest('[data-piece]'); if(button&&!button.disabled)selectPiece(button.dataset.piece)});

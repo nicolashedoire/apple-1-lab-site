@@ -9,30 +9,36 @@ export function mountHack(container) {
   container.innerHTML = `
     <div class="hack-shell">
       <div class="hack-intro">
-        <div><span class="hack-eyebrow">MISSION 01 · BAC À SABLE</span><h3>Change la lettre<br><span>en modifiant la mémoire.</span></h3></div>
-        <p>Un petit programme affiche la lettre <b>A</b>. Ta mission : trouver la valeur à changer dans sa mémoire pour afficher <b>B</b>.</p>
+        <div><span class="hack-eyebrow">MISSION 01 · JEU DANS UNE MACHINE SIMULÉE</span><h3>Change la lettre<br><span>en modifiant la mémoire.</span></h3></div>
+        <p>Un petit programme affiche la lettre <b>A</b>. Ta mission : modifier une case de sa mémoire pour lui faire afficher <b>B</b>.</p>
+      </div>
+      <div class="hack-walkthrough" aria-label="Comment jouer">
+        <div><span>1</span><p><b>Trouve la case bleue</b><br>Elle contient <code>C1</code>, le code de A dans ce jeu.</p></div>
+        <div><span>2</span><p><b>Change son contenu</b><br>Efface <code>C1</code> et écris <code>C2</code>.</p></div>
+        <div><span>3</span><p><b>Lance le programme</b><br>Clique sur « Tester » et regarde l’écran après.</p></div>
       </div>
       <div class="hack-workspace">
         <div class="hack-memory">
-          <div class="hack-label"><span>01 &nbsp; LA MÉMOIRE</span><span>ADRESSES EN HEXADÉCIMAL</span></div>
-          <p>Chaque case est un tiroir. Le deuxième contient le code de la lettre.</p>
+          <div class="hack-label"><span>01 &nbsp; LA MÉMOIRE</span><span>LES CASES DU PROGRAMME</span></div>
+          <p>La mémoire ressemble à une rangée de tiroirs. Chaque tiroir a un numéro pour le retrouver. La case bleue contient le code de la lettre.</p>
           <div class="hack-cells" aria-label="Cases de la mémoire">
             <div class="hack-cell"><span>$0300</span><b>A9</b><small>consigne</small></div>
-            <div class="hack-cell hack-cell-edit"><label for="hack-value">$0301 <span>À MODIFIER</span></label><input id="hack-value" value="C1" inputmode="text" maxlength="2" spellcheck="false" autocomplete="off" aria-describedby="hack-help"><small>code de la lettre</small></div>
+            <div class="hack-cell hack-cell-edit"><label for="hack-value">$0301 <span>À MODIFIER</span></label><input id="hack-value" value="C1" inputmode="text" maxlength="2" spellcheck="false" autocomplete="off" aria-describedby="hack-help"><small>lettre à afficher</small></div>
             <div class="hack-cell"><span>$0302</span><b>20</b><small>consigne</small></div>
             <div class="hack-cell"><span>$0303</span><b>EF</b><small>adresse</small></div>
             <div class="hack-cell"><span>$0304</span><b>FF</b><small>adresse</small></div>
             <div class="hack-cell"><span>$0305</span><b>00</b><small>fin</small></div>
           </div>
-          <p id="hack-help" class="hack-help">Entre deux chiffres ou lettres entre 0 et 9 et A et F, puis lance le programme.</p>
+          <p id="hack-help" class="hack-help">Clique dans la case bleue, remplace C1 par C2, puis appuie sur « Tester ma modification ».</p>
+          <details class="hack-words"><summary>Que veulent dire ces codes ?</summary><p>Un <b>octet</b>, c’est une petite quantité d’information que l’ordinateur peut ranger dans un tiroir. Ici, on l’écrit avec deux signes comme <code>C1</code>.</p><p>On utilise 16 signes : <code>0 à 9</code>, puis <code>A à F</code>. Cette façon d’écrire s’appelle l’<b>hexadécimal</b>. Le signe <code>$</code> devant un numéro indique cette écriture : <code>$0301</code> est l’adresse, c’est-à-dire le numéro du tiroir.</p><p>Dans ce programme, l’Apple-1 reconnaît <code>C1</code> comme A et <code>C2</code> comme B. Tu peux aussi essayer <code>C3</code>.</p></details>
           <div class="hack-actions"><button class="hack-run" id="hack-run" type="button">Tester ma modification <span>→</span></button><button class="hack-reset" id="hack-reset" type="button">Recommencer</button></div>
-          <div class="hack-feedback" id="hack-feedback" role="status" aria-live="polite">À toi de jouer : modifie le tiroir $0301.</div>
+          <div class="hack-feedback" id="hack-feedback" role="status" aria-live="polite">Commence par cliquer dans la case bleue : c’est le tiroir $0301.</div>
           <details class="hack-hint"><summary>Un indice ?</summary><p>Le code de <b>A</b> est <code>C1</code>. Pour obtenir <b>B</b>, avance d’un cran : quel nombre vient après 1 ?</p><details><summary>Voir la solution</summary><p>Écris <code>C2</code> dans le tiroir <code>$0301</code>, puis teste.</p></details></details>
         </div>
         <div class="hack-display">
           <div class="hack-label"><span>02 &nbsp; LE RÉSULTAT</span><span>ÉCRAN SIMULÉ</span></div>
           <div class="hack-comparison"><div><span>AVANT</span><div class="hack-screen" aria-label="Avant : A">A<i>▍</i></div></div><div class="hack-transition" aria-hidden="true">→</div><div><span>APRÈS</span><div class="hack-screen" id="hack-output" aria-label="Après : en attente">?<i>▍</i></div></div></div>
-          <div class="hack-explain"><strong>Comment ça marche ?</strong><p>Le processeur lit la valeur dans le tiroir, puis demande au terminal de l’afficher. En changeant cette valeur, tu changes la lettre qu’il reçoit.</p></div>
+          <div class="hack-explain"><strong>Comment ça marche ?</strong><p>Le processeur est la partie qui suit les consignes. Il prend le code dans la case bleue, puis demande à l’écran de montrer la lettre correspondante. Si tu changes le code, tu changes le résultat.</p></div>
         </div>
       </div>
       <p class="hack-note">Tout se passe dans ton navigateur, dans une copie isolée et simplifiée de l’Apple-1. Aucun ordinateur extérieur n’est modifié.</p>
@@ -43,7 +49,7 @@ export function mountHack(container) {
   const run = () => {
     const raw = input.value.trim().toUpperCase();
     if (!/^[0-9A-F]{2}$/.test(raw)) {
-      feedback.textContent = 'Il faut exactement deux caractères entre 0 et 9 ou A et F. Exemple : C1.';
+      feedback.textContent = 'Il faut deux signes : utilise les chiffres de 0 à 9 ou les lettres de A à F. Par exemple : C2.';
       feedback.className = 'hack-feedback is-error';
       input.setAttribute('aria-invalid', 'true');
       return;
@@ -61,7 +67,7 @@ export function mountHack(container) {
     output.setAttribute('aria-label', 'Après : ' + (text || 'aucune lettre affichée'));
     lastValue = value;
     if (text === 'B') {
-      feedback.textContent = 'Bravo ! Le tiroir contient C2 : le processeur a affiché B.';
+      feedback.textContent = 'Bravo ! Tu as remplacé C1 par C2 : le programme a affiché B. Essaie maintenant C3 pour voir ce qui se passe.';
       feedback.className = 'hack-feedback is-success';
     } else {
       feedback.textContent = text ? `Le code ${hex(value)} affiche « ${text} ». Cherche encore pour obtenir B.` : `Le code ${hex(value)} ne donne pas de lettre visible ici. Essaie une autre valeur.`;
@@ -70,10 +76,10 @@ export function mountHack(container) {
   };
   find('hack-run').addEventListener('click', run);
   input.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); run(); } });
-  input.addEventListener('input', () => { input.removeAttribute('aria-invalid'); if (lastValue !== null) { feedback.textContent = 'Ta nouvelle valeur sera utilisée au prochain test.'; feedback.className = 'hack-feedback'; } });
+  input.addEventListener('input', () => { input.removeAttribute('aria-invalid'); if (lastValue !== null) { feedback.textContent = 'C’est noté. Clique sur « Tester ma modification » pour voir le résultat.'; feedback.className = 'hack-feedback'; } });
   find('hack-reset').addEventListener('click', () => {
     cpu.load(initial, 0x0300); lastValue = null; input.value = 'C1'; input.removeAttribute('aria-invalid');
     output.replaceChildren(document.createTextNode('?')); const cursor=document.createElement('i');cursor.textContent='▍';output.append(cursor); output.setAttribute('aria-label', 'Après : en attente');
-    feedback.className='hack-feedback'; feedback.textContent='À toi de jouer : modifie le tiroir $0301.';
+    feedback.className='hack-feedback'; feedback.textContent='Commence par cliquer dans la case bleue : c’est le tiroir $0301.';
   });
 }
