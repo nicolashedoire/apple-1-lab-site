@@ -24,7 +24,8 @@ function canSave() {
   try { const test = KEY + '-check'; localStorage.setItem(test, '1'); localStorage.removeItem(test); return true; } catch (_) { return false; }
 }
 export function trackJourney() {
-  const page = location.pathname.split('/').pop();
+  const part = location.pathname.split('/').pop();
+  const page = part && !part.includes('.') ? `${part}.html` : part;
   if (!byHref.has(page)) return;
   const data = load();
   if (!data.visited.includes(page)) data.visited.push(page);

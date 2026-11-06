@@ -1,12 +1,13 @@
 import { mountPico } from './pico.js';
-import { trackJourney, mountJourney } from './journey.js';
+import { trackJourney, mountJourney } from './journey.js?v=2';
 
 trackJourney();
 const hero = document.getElementById('pico-hero');
 if (hero) mountPico(hero, { variant: 'hero' });
 mountJourney(document.getElementById('voyage'));
 
-const current = location.pathname.split('/').pop();
+const part = location.pathname.split('/').pop();
+const current = part && !part.includes('.') ? `${part}.html` : part;
 const hints = {
   'carte.html': 'Chaque point est une aventure. Choisis celui qui t’intrigue !',
   'guide.html': 'On commence doucement. Je te présente les mots qui vont nous servir.',
