@@ -9,3 +9,21 @@
 .story-pico .pico--hero{--pico-size:180px}@media(max-width:600px){.story-pico .pico--hero{--pico-size:138px}}
 @media (min-width:701px) and (max-height:850px){.story-pico .pico--hero{--pico-size:145px}}
 @media(min-width:901px) and (max-width:1500px){.topbar nav{overflow-x:auto;gap:18px;padding:10px 0;scrollbar-width:thin}.topbar nav a{flex:none}}
+
+/* The first screen is a quiet, luminous welcome to the Apple-1. */
+.story-hero{background:radial-gradient(ellipse 48% 39% at 50% 75%,#123c20 0%,#09170e 48%,#060708 100%);padding:clamp(55px,6.5vh,78px) 20px clamp(60px,7vh,86px)}
+.story-hero h1{margin:0 auto;color:#f7f7f9}
+.story-actions{margin:clamp(38px,5vh,54px) 0;gap:24px;row-gap:18px}
+.story-actions a:first-child{padding:15px 24px;background:linear-gradient(180deg,#1685f4,#0056d2);box-shadow:inset 0 1px #ffffff50,0 5px 18px #005be532;transition:background .2s ease,box-shadow .2s ease}
+.story-actions a:first-child:hover{background:linear-gradient(180deg,#2996ff,#076ce8);box-shadow:inset 0 1px #ffffff60,0 8px 24px #0071e355}
+.story-actions a:focus-visible{outline:2px solid #a6d4ff;outline-offset:5px}
+.story-terminal{width:min(800px,44vw);min-width:min(650px,100%);padding:25px 26px 23px;border-radius:32px;background:linear-gradient(165deg,#f0e8d7 0%,#e5dccb 50%,#c6bfad 100%);box-shadow:0 25px 55px #000b,0 0 85px #4bea7c38,inset 0 1px 2px #fff,inset 0 -2px 6px #847f7140}
+.story-terminal:after{content:'';position:absolute;z-index:0;left:6%;right:6%;bottom:-16px;height:20px;border-radius:50%;background:#65ff8b;filter:blur(17px);opacity:.32;pointer-events:none}
+.intro-screen{z-index:1;min-height:clamp(205px,14vw,265px);border:10px solid #242724;border-radius:18px;background:radial-gradient(ellipse at 50% 46%,#0c2d19,#06170d 68%,#020b05);box-shadow:inset 0 0 42px #000c}
+.terminal-text{max-width:70%;margin:clamp(25px,2.5vw,38px) 0 30px 9%;font-size:clamp(13px,1.1vw,19px);color:#80ffab;text-shadow:0 0 10px #2dff87a0}
+.pixel-pico{position:absolute;z-index:2;right:8%;top:50%;width:clamp(95px,17%,140px);height:auto;transform:translateY(-50%);overflow:visible;filter:drop-shadow(0 0 7px #64ff95a0);pointer-events:none}
+.pixel-pico-body{fill:#7eff9b}.pixel-pico-eyes,.pixel-pico-mouth{fill:#05200d}.pixel-pico-eyes{transform-box:fill-box;transform-origin:center;animation:pixel-pico-blink 7s infinite}
+@keyframes pixel-pico-blink{0%,46%,48%,100%{transform:scaleY(1)}47%{transform:scaleY(.15)}}
+@media(max-width:700px){.story-hero{padding:54px 16px 62px}.story-hero h1{font-size:clamp(45px,10vw,52px)}.story-actions{margin:36px 0;gap:16px;row-gap:14px}.story-terminal{width:100%;min-width:0;padding:14px 14px 16px;border-radius:23px}.intro-screen{min-height:190px;border-width:7px}.terminal-text{margin:29px 0 26px 7%;max-width:68%;font-size:clamp(10px,2.7vw,13px)}.pixel-pico{right:6%;width:20%;min-width:54px}.terminal-led{right:25px;bottom:6px;width:6px;height:6px}}
+@media(max-width:360px){.story-actions{flex-direction:column}.terminal-text{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.pixel-pico-eyes{animation:none}.story-actions a:first-child{transition:none}}
