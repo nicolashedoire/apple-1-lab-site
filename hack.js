@@ -1,3 +1,4 @@
+import { recordAchievement } from './achievements.js';
 import {CPU, hex} from './cpu.js';
 
 // A self-contained, browser-local memory puzzle. It uses the same educational
@@ -67,6 +68,7 @@ export function mountHack(container) {
     output.setAttribute('aria-label', 'Après : ' + (text || 'aucune lettre affichée'));
     lastValue = value;
     if (text === 'B') {
+      recordAchievement('memory');
       feedback.textContent = 'Bravo ! Tu as remplacé C1 par C2 : le programme a affiché B. Essaie maintenant C3 pour voir ce qui se passe.';
       feedback.className = 'hack-feedback is-success';
     } else {

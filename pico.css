@@ -2,7 +2,7 @@
 .pico{--pico-size:132px;display:flex;align-items:center;gap:20px;min-width:0;color:#f5fff8;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif}
 .pico--compact{--pico-size:62px;gap:12px}
 .pico__figure{position:relative;flex:none;width:var(--pico-size);height:calc(var(--pico-size) * 1.08);display:grid;place-items:center}
-.pico__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;pointer-events:none}
+.pico__poster{visibility:hidden;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;pointer-events:none}
 .pico--compact .pico__poster{mix-blend-mode:multiply}
 .pico__bubble{position:relative;max-width:280px;padding:16px 19px;border:1px solid #ffffff22;border-radius:19px;background:#ffffff10;backdrop-filter:blur(14px)}
 .pico__bubble[hidden]{display:none}.pico__bubble:before{content:"";position:absolute;left:-5px;top:24px;width:9px;height:9px;border-left:1px solid #ffffff22;border-bottom:1px solid #ffffff22;background:#20372d;transform:rotate(45deg)}
@@ -13,3 +13,6 @@
 .pico--compact .pico__bubble{background:#fff;border-color:#e4e9e5;box-shadow:0 6px 22px #142d1a10}
 .pico--compact .pico__bubble:before{background:#fff;border-color:#e4e9e5}
 .pico--compact .pico__label{color:#148850}
+
+/* Avoid a change of face while the exact 3D model is loading. */
+.pico__loading{display:flex;gap:5px;align-items:center;justify-content:center}.pico__loading span{width:6px;height:6px;border-radius:50%;background:#65e99a;animation:pico-loading 1.2s ease-in-out infinite}.pico__loading span:nth-child(2){animation-delay:.15s}.pico__loading span:nth-child(3){animation-delay:.3s}@keyframes pico-loading{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}.pico3d-ready>.pico__loading,.pico3d-failed>.pico__loading{display:none}.pico3d-failed>.pico__poster{visibility:visible}@media(prefers-reduced-motion:reduce){.pico__loading span{animation:none;opacity:.75}}

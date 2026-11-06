@@ -20,7 +20,10 @@ export function mountPico(container, { message = '', variant = 'hero' } = {}) {
   poster.src = new URL(variant === 'compact' ? './assets/pico-reference.png' : './assets/pico-meshy-preview.png', import.meta.url).href;
   poster.alt = '';
   poster.decoding = 'async';
-  figure.append(poster);
+  const loading = document.createElement('span');
+  loading.className = 'pico__loading';
+  loading.innerHTML = '<span></span><span></span><span></span>';
+  figure.append(poster, loading);
   const bubble = document.createElement('div');
   bubble.className = 'pico__bubble';
   const label = document.createElement('span');

@@ -1,3 +1,4 @@
+import { recordAchievement } from './achievements.js';
 // A playful visual assembly activity, not electrical assembly instructions.
 export function mountAssembly(container) {
   if (!container) return;
@@ -19,7 +20,7 @@ export function mountAssembly(container) {
     query('.assembly-count').textContent=done?'ASSEMBLAGE TERMINÉ':`ÉTAPE ${step+1} / ${pieces.length}`;
     query('.assembly-progress-track span').style.width=`${step/pieces.length*100}%`;
     query('.assembly-step-number').innerHTML=done?'✓ <span>TERMINÉ</span>':`${String(step+1).padStart(2,'0')} <span>/ 05</span>`;
-    query('.assembly-side h3').textContent=done?'Bravo, ta machine est prête !':current.title;
+    query('.assembly-side h3').textContent=done?'Bravo, ta maquette est prête !':current.title;
     query('.assembly-hint').textContent=done?'Les pièces travaillent ensemble ! Va au laboratoire pour voir comment elles suivent un programme.':current.hint;
     query('.assembly-next').hidden=!done;
     inventory.innerHTML=pieces.map((p,i)=>`<button type="button" class="assembly-piece ${selected===p.id?'is-selected':''} ${i<step?'is-placed':''}" data-piece="${p.id}" ${done||i<step?'disabled':''} aria-pressed="${selected===p.id}"><span class="assembly-piece-icon part-${p.id}" aria-hidden="true"><i></i></span><span>${escape(p.name)}</span>${i<step?'<span class="assembly-check" aria-label="placé">✓</span>':''}</button>`).join('');
@@ -37,7 +38,7 @@ export function mountAssembly(container) {
     if(step>=pieces.length)return;
     if(!selected){feedback.textContent='Choisis une pièce avant de la placer.'; return;}
     if(selected!==pieces[step].id){feedback.textContent=`Pour cette étape, choisis « ${pieces[step].name} » dans la liste.`;return;}
-    const fact=pieces[step].fact; step++; selected=null; render(); feedback.textContent=fact;
+    const fact=pieces[step].fact; step++; selected=null; if(step===pieces.length) recordAchievement('montage'); render(); feedback.textContent=fact;
   }
   inventory.addEventListener('click',e=>{const button=e.target.closest('[data-piece]'); if(button&&!button.disabled)selectPiece(button.dataset.piece)});
   placeButton.addEventListener('click',place);

@@ -108,5 +108,5 @@ function render(last=null){const regs=[['A',cpu.a,2],['X',cpu.x,2],['Y',cpu.y,2]
 if(select)setDemo();
 
 const atelier=$('#atelier'),hack=$('#hack');
-if(atelier)import('./assembly.js').then(({mountAssembly})=>mountAssembly(atelier)).catch(()=>{atelier.textContent='L’atelier de montage est momentanément indisponible.'});
-if(hack)import('./hack.js?v=2').then(({mountHack})=>mountHack(hack)).catch(()=>{hack.textContent='L’atelier de mémoire est momentanément indisponible.'});
+if(atelier)import('./assembly.js?v=3').then(({mountAssembly})=>mountAssembly(atelier)).catch(()=>{atelier.textContent='L’atelier de montage est momentanément indisponible.'});
+if(hack)import('./hack.js?v=4').then(({mountHack})=>mountHack(hack)).catch(()=>{hack.textContent='L’atelier de mémoire est momentanément indisponible.'});

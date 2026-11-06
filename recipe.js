@@ -1,3 +1,4 @@
+import { recordAchievement } from './achievements.js';
 import { CPU, hex } from './cpu.js';
 
 // Each card is one actual instruction in the project's educational CPU.
@@ -77,7 +78,7 @@ export function mountRecipe(container) {
     if(id === 'takeO' || id === 'takeK') message=`Le processeur prend « ${id==='takeO'?'O':'K'} » et le garde dans sa petite case A.`;
     else if(id === 'show') message=result.output ? `Il envoie « ${result.output} » à l’écran.` : 'Aucune lettre visible n’est prête. Essaie de prendre une lettre avant de la montrer.';
     else if(id === 'stop') {
-      if(cpu.screen === 'OK') message='Bravo ! La machine affiche OK et la recette est terminée.';
+      if(cpu.screen === 'OK') { recordAchievement('recipe'); message='Bravo ! La machine affiche OK et la recette est terminée.'; }
       else if(!cpu.screen) message='La recette est arrêtée, mais l’écran est vide. Essaie de prendre puis de montrer une lettre.';
       else message=`La recette est arrêtée et l’écran affiche « ${cpu.screen} ». Peux-tu le faire afficher OK ?`;
     }
