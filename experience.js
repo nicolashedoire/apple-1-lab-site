@@ -21,7 +21,7 @@ const hints = {
   'memoire.html': 'Une petite case peut changer une lettre. Tu veux essayer ?',
   'enquete.html': 'Une lettre a un chemin à parcourir. Suis les indices avec moi.'
 };
-if (hints[current]) {
+if (hints[current] && current !== 'guide.html') {
   const box = document.createElement('aside');
   box.className = 'page-pico';
   box.setAttribute('aria-label', 'Un conseil de Pixel');
