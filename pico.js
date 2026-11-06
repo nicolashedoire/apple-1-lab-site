@@ -28,7 +28,7 @@ export function mountPico(container, { message = '', variant = 'hero' } = {}) {
   bubble.className = 'pico__bubble';
   const label = document.createElement('span');
   label.className = 'pico__label';
-  label.textContent = 'PICO';
+  label.textContent = 'PIXEL';
   const text = document.createElement('p');
   text.className = 'pico__message';
   bubble.append(label, text);

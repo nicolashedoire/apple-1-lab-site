@@ -1,4 +1,4 @@
-import { mountPico } from './pico.js?v=3';
+import { mountPico } from './pico.js?v=4';
 import { trackJourney, mountJourney } from './journey.js?v=5';
 
 trackJourney();
@@ -24,12 +24,12 @@ const hints = {
 if (hints[current]) {
   const box = document.createElement('aside');
   box.className = 'page-pico';
-  box.setAttribute('aria-label', 'Un conseil de Pico');
+  box.setAttribute('aria-label', 'Un conseil de Pixel');
   const main = document.querySelector('main');
   if (main) { main.before(box); mountPico(box, { variant: 'compact', message: hints[current] }); setupPico3D(box, 'compact'); }
 }
 
-if (document.getElementById('map-root')) import('./map.js?v=3').then(({mountMap})=>mountMap(document.getElementById('map-root'))).catch(()=>{document.getElementById('map-root').textContent='La carte est indisponible. Les activités restent accessibles depuis le menu.'});
+if (document.getElementById('map-root')) import('./map.js?v=4').then(({mountMap})=>mountMap(document.getElementById('map-root'))).catch(()=>{document.getElementById('map-root').textContent='La carte est indisponible. Les activités restent accessibles depuis le menu.'});
 if (document.getElementById('recipe')) import('./recipe.js?v=4').then(({mountRecipe})=>mountRecipe(document.getElementById('recipe'))).catch(()=>{document.getElementById('recipe').textContent='Le jeu de recettes est momentanément indisponible.'});
 
 async function setupPico3D(host, variant) {

@@ -1,0 +1,16 @@
+/* A preview only: obtaining a diploma requires completing the whole journey. */
+.diploma-teaser{background:#fff;color:#1d1d1f;padding:clamp(90px,10vw,150px) 0}
+.diploma-teaser__inner{width:min(1280px,calc(100% - 80px));margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(55px,7vw,115px);align-items:center}
+.diploma-teaser__copy h2{font-size:clamp(36px,4.2vw,60px);line-height:1.04;letter-spacing:-.055em;margin:0 0 18px;font-weight:700}
+.diploma-teaser__copy p{color:#6e6e73;line-height:1.55;font-size:16px;margin:0;max-width:450px}
+.diploma-preview{margin:0;position:relative;background:#fafafb;border:1px solid #e8e8ed;border-radius:24px;padding:10px;box-shadow:0 18px 45px #1d1d1f18,0 5px 12px #1d1d1f0b;text-align:center}
+.diploma-preview__inside{min-height:320px;border:1px solid #cbd0db;border-radius:16px;padding:30px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.diploma-preview__apple{width:33px;height:40px;display:block;color:#123d24;margin-bottom:18px}
+.diploma-preview__title{font-size:clamp(18px,2.1vw,27px);letter-spacing:-.04em;line-height:1.15;margin:0;font-weight:700}
+.diploma-preview__recipient{color:#656a75;font-size:13px;margin:10px 0 0}
+.diploma-preview__name{display:block;font-size:clamp(42px,5vw,66px);letter-spacing:-.06em;line-height:1;margin:2px 0 17px;font-weight:700}
+.diploma-preview__screen{background:#061a0e;border-radius:9px;color:#8bffab;text-shadow:0 0 12px #40ef7c99;font:600 clamp(15px,1.8vw,22px)/1.2 ui-monospace,SFMono-Regular,monospace;letter-spacing:.08em;width:min(100%,330px);padding:14px 20px;white-space:nowrap}
+.diploma-preview__date{font-size:12px;line-height:1.5;margin:17px 0 0;color:#3a3a42}
+.diploma-preview__example{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#86868b;margin:9px 0 0}
+@media(max-width:850px){.diploma-teaser{padding:85px 0}.diploma-teaser__inner{grid-template-columns:1fr;gap:36px}.diploma-teaser__copy h2{font-size:clamp(36px,6vw,48px)}.diploma-preview{max-width:650px;width:100%;margin:0 auto}}
+@media(max-width:520px){.diploma-teaser{padding:70px 0}.diploma-teaser__inner{width:calc(100% - 28px);gap:30px}.diploma-teaser__copy p{font-size:15px}.diploma-preview__inside{min-height:280px;padding:24px 15px}.diploma-preview__title{font-size:20px}.diploma-preview__screen{font-size:15px;letter-spacing:.04em;padding:13px 8px}.diploma-preview__name{font-size:52px}}
