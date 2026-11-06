@@ -6,7 +6,7 @@ An interactive introduction to the Apple-1: explore the board, build a simplifie
 
 ![An illustrated Apple-1 computer and its green terminal](docs/apple1-cover.png)
 
-The experience is in French and is designed for curious beginners. Pixel, a small pixel-art companion, welcomes visitors on the home page.
+The experience is in French and is designed for curious beginners.
 
 ## Explore
 
