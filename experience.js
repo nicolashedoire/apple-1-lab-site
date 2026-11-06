@@ -1,5 +1,5 @@
 import { mountPico } from './pico.js?v=3';
-import { trackJourney, mountJourney } from './journey.js?v=4';
+import { trackJourney, mountJourney } from './journey.js?v=5';
 
 trackJourney();
 const hero = document.getElementById('pico-hero');
